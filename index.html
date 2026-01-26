@@ -112,10 +112,18 @@
       <p>Data is fetched via your serverless backend (<code>/api/monday</code>).</p>
 
       <div class="card">
-        <button id="load">Load Boards</button>
-        <p id="status" class="status"></p>
-        <p id="error" class="error"></p>
-      </div>
+  <h2>Boards</h2>
+
+  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <label for="boardsSelect" style="color:rgba(232,236,255,0.75); font-weight:700;">Select board:</label>
+    <select id="boardsSelect" disabled
+      style="padding:10px 12px; border-radius:12px; background:rgba(0,0,0,0.35); color:#e8ecff; border:1px solid rgba(255,255,255,0.15);">
+      <option value="">(load boards first)</option>
+    </select>
+  </div>
+
+  <ul id="boardsList" style="margin-top:12px;"></ul>
+</div>
 
       <div class="card">
         <h2>Boards</h2>
@@ -194,3 +202,4 @@
     </script>
   </body>
 </html>
+
