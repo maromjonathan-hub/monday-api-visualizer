@@ -368,19 +368,22 @@
 
         try {
           const mutation = `
-            mutation ($boardId: ID!, $name: String!) {
-              update_board(board_id: $boardId, board_attribute: name, new_value: $name) {
-                id
-                name
-              }
-            }
-          `;
+  mutation ($boardId: ID!, $name: String!) {
+    update_board(board_id: $boardId, board_attribute: name, new_value: $name)
+  }
+`;
 
           const variables = { boardId: String(boardId), name: newName };
           const data = await callMonday(mutation, variables);
 
           outEl.textContent = JSON.stringify(data, null, 2);
+          if (data?.data?.update_board == null) {
+          throw new Error("Rename failed. (No update_board in response)");
+}
 
+statusEl.textContent = "Renamed ✅ (refreshing boards...)";
+loadBtn.click();
+          
           if (data?.data?.update_board == null) {
   throw new Error("Rename failed. (No update_board in response)");
 }
@@ -407,4 +410,5 @@ loadBtn.click();
     </script>
   </body>
 </html>
+
 
