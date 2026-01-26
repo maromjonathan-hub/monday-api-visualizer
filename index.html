@@ -1,167 +1,127 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>monday API Viewer</title>
+    <title>monday.com API Viewer</title>
+
     <style>
-  :root{
-    --bg: #0b1220;
-    --card: rgba(255,255,255,0.06);
-    --card2: rgba(255,255,255,0.10);
-    --text: #e8ecff;
-    --muted: rgba(232,236,255,0.75);
-    --brand: #7c3aed;   /* purple */
-    --brand2:#22c55e;   /* green */
-    --danger:#ff4d6d;
-    --border: rgba(255,255,255,0.12);
-  }
+      :root{
+        --bg: #0b1220;
+        --card: rgba(255,255,255,0.06);
+        --card2: rgba(255,255,255,0.10);
+        --text: #e8ecff;
+        --muted: rgba(232,236,255,0.75);
+        --brand: #7c3aed;
+        --danger:#ff4d6d;
+        --border: rgba(255,255,255,0.12);
+      }
 
-  * { box-sizing: border-box; }
+      * { box-sizing: border-box; }
 
-  body{
-    margin: 0;
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    color: var(--text);
-    background:
-      radial-gradient(900px 500px at 15% 10%, rgba(124,58,237,0.35), transparent 60%),
-      radial-gradient(900px 500px at 85% 20%, rgba(34,197,94,0.25), transparent 60%),
-      radial-gradient(900px 500px at 50% 90%, rgba(59,130,246,0.20), transparent 60%),
-      var(--bg);
-    min-height: 100vh;
-  }
+      body{
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(900px 500px at 15% 10%, rgba(124,58,237,0.35), transparent 60%),
+          radial-gradient(900px 500px at 85% 20%, rgba(59,130,246,0.30), transparent 60%),
+          var(--bg);
+        min-height: 100vh;
+      }
 
-  .wrap{
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 28px 16px 60px;
-  }
+      .wrap{
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 28px 16px 60px;
+      }
 
-  h1{
-    margin: 0 0 8px;
-    font-size: 34px;
-    letter-spacing: -0.5px;
-  }
+      h1{
+        margin: 0 0 10px;
+        font-size: 34px;
+      }
 
-  p{
-    margin: 0 0 16px;
-    color: var(--muted);
-    line-height: 1.5;
-  }
+      p{
+        margin: 0 0 14px;
+        color: var(--muted);
+      }
 
-  code{
-    background: rgba(255,255,255,0.08);
-    border: 1px solid var(--border);
-    padding: 2px 6px;
-    border-radius: 6px;
-    color: #fff;
-  }
+      button{
+        border: 0;
+        color: #fff;
+        font-weight: 700;
+        padding: 10px 16px;
+        border-radius: 14px;
+        cursor: pointer;
+        background: linear-gradient(135deg, var(--brand), #3b82f6);
+        box-shadow: 0 10px 24px rgba(124,58,237,0.30);
+      }
 
-  .card{
-    margin-top: 16px;
-    background: linear-gradient(180deg, var(--card2), var(--card));
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: 0 18px 50px rgba(0,0,0,0.35);
-    backdrop-filter: blur(8px);
-  }
+      .card{
+        margin-top: 18px;
+        background: linear-gradient(180deg, var(--card2), var(--card));
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 16px;
+        box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+      }
 
-  .row{
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
+      .status{
+        margin-top: 10px;
+        color: var(--muted);
+      }
 
-  button{
-    border: 0;
-    color: #fff;
-    font-weight: 700;
-    padding: 10px 14px;
-    border-radius: 12px;
-    cursor: pointer;
-    background: linear-gradient(135deg, var(--brand), #3b82f6);
-    box-shadow: 0 10px 24px rgba(124,58,237,0.30);
-    transition: transform 120ms ease, filter 120ms ease;
-  }
+      .error{
+        margin-top: 10px;
+        color: var(--danger);
+        font-weight: 700;
+      }
 
-  button:hover{ transform: translateY(-1px); filter: brightness(1.05); }
-  button:active{ transform: translateY(0px); filter: brightness(0.98); }
+      ul{
+        margin: 10px 0 0;
+        padding-left: 18px;
+      }
 
-  .pill{
-    display: inline-block;
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: rgba(255,255,255,0.07);
-    color: var(--muted);
-    font-size: 12px;
-  }
+      li{
+        margin: 8px 0;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(255,255,255,0.05);
+      }
 
-  .status{
-    margin-top: 10px;
-    color: var(--muted);
-  }
-
-  .error{
-    margin-top: 10px;
-    color: var(--danger);
-    font-weight: 700;
-  }
-
-  ul{
-    margin: 10px 0 0;
-    padding-left: 18px;
-  }
-
-  li{
-    margin: 8px 0;
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: rgba(255,255,255,0.05);
-  }
-
-  li b{
-    color: #fff;
-  }
-
-  pre{
-    margin-top: 10px;
-    padding: 12px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: rgba(0,0,0,0.35);
-    overflow: auto;
-  }
-</style>
+      pre{
+        margin-top: 10px;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(0,0,0,0.35);
+        overflow: auto;
+      }
+    </style>
   </head>
 
   <body>
     <div class="wrap">
-    <h1>monday API Viewer</h1>
-    <p>This loads your first 20 boards via your backend: <code>/api/monday</code></p>
+      <h1>monday.com API Viewer</h1>
+      <p>Data is fetched through your serverless backend (<code>/api/monday</code>).</p>
 
-    <div class="card">
-    <button id="load">Load Boards</button>
-    <p id="status"></p>
-    <p id="error" class="error"></p>
+      <div class="card">
+        <button id="load">Load Boards</button>
+        <p id="status" class="status"></p>
+        <p id="error" class="error"></p>
+      </div>
+
+      <div class="card">
+        <h2>Boards</h2>
+        <ul id="boardsList"></ul>
+      </div>
+
+      <div class="card">
+        <h2>Boards (raw JSON)</h2>
+        <pre id="out">{}</pre>
+      </div>
     </div>
-
-    <div class="card">
-      <h2>Boards</h2>
-      <ul id="boardsList"></ul>
-    </div>  
-    <h2>Boards</h2>
-    <ul id="boardsList"></ul>
-
-    <div class="card">
-    <h2>Boards (raw JSON)</h2>
-    <pre id="out">{}</pre>
-    </div>
-  </div>
-</body>
 
     <script>
       const loadBtn = document.getElementById("load");
@@ -199,32 +159,30 @@
             }
           `;
 
-         const data = await callMonday(query);
-outEl.textContent = JSON.stringify(data, null, 2);
+          const data = await callMonday(query);
 
-const boards = data?.data?.boards || [];
-boardsListEl.innerHTML = boards
-  .map(b => `<li><b>${escapeHtml(b.name)}</b> <span style="color:#666;">(id: ${b.id})</span></li>`)
-  .join("");
+          outEl.textContent = JSON.stringify(data, null, 2);
 
-statusEl.textContent = "Done ✅";
+          const boards = data?.data?.boards || [];
+          boardsListEl.innerHTML = boards
+            .map(b => `<li><b>${escapeHtml(b.name)}</b> <span style="color:#aaa;">(id: ${b.id})</span></li>`)
+            .join("");
+
+          statusEl.textContent = "Done ✅";
         } catch (e) {
           statusEl.textContent = "";
           errorEl.textContent = e.message;
         }
       });
-    function escapeHtml(str) {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
+
+      function escapeHtml(str) {
+        return String(str)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
     </script>
-   </div>
   </body>
 </html>
-
-
-
