@@ -93,46 +93,6 @@
         white-space: pre-wrap;
       }
 
-      ul {
-        margin: 12px 0 0;
-        padding-left: 18px;
-      }
-
-      li {
-        margin: 8px 0;
-        padding: 10px 12px;
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.15);
-        background: rgba(255,255,255,0.05);
-      }
-
-      pre {
-        margin-top: 10px;
-        padding: 12px;
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.15);
-        background: rgba(0,0,0,0.35);
-        overflow: auto;
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-      }
-
-      th, td {
-        padding: 10px;
-        border-bottom: 1px solid rgba(255,255,255,0.12);
-        text-align: left;
-        vertical-align: top;
-      }
-
-      th {
-        border-bottom: 1px solid rgba(255,255,255,0.18);
-        color: rgba(232,236,255,0.9);
-      }
-
       .row {
         display: flex;
         gap: 10px;
@@ -155,6 +115,46 @@
         font-size: 13px;
         margin-top: 8px;
       }
+
+      ul {
+        margin: 12px 0 0;
+        padding-left: 18px;
+      }
+
+      li {
+        margin: 8px 0;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.05);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      th, td {
+        padding: 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.12);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        border-bottom: 1px solid rgba(255,255,255,0.18);
+        color: rgba(232,236,255,0.9);
+      }
+
+      pre {
+        margin-top: 10px;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.15);
+        background: rgba(0,0,0,0.35);
+        overflow: auto;
+      }
     </style>
   </head>
 
@@ -165,7 +165,7 @@
 
       <div class="card">
         <div class="row">
-          <button id="load">Load Boards</button>
+          <button id="loadBoards">Load Boards</button>
 
           <label for="boardsSelect" style="color:rgba(232,236,255,0.75); font-weight:700;">Select board:</label>
           <select id="boardsSelect" disabled>
@@ -199,24 +199,24 @@
 
       <div class="card">
         <h2>Raw JSON (last response)</h2>
-        <pre id="out">{}</pre>
+        <pre id="raw">{}</pre>
       </div>
     </div>
 
     <script>
-      const loadBtn = document.getElementById("load");
+      const loadBoardsBtn = document.getElementById("loadBoards");
       const loadItemsBtn = document.getElementById("loadItems");
-      const boardsSelectEl = document.getElementById("boardsSelect");
-
-      const newBoardNameEl = document.getElementById("newBoardName");
       const renameBoardBtn = document.getElementById("renameBoard");
 
-      const statusEl = document.getElementById("status");
-      const errorEl = document.getElementById("error");
-      const outEl = document.getElementById("out");
+      const boardsSelectEl = document.getElementById("boardsSelect");
+      const newBoardNameEl = document.getElementById("newBoardName");
 
       const boardsListEl = document.getElementById("boardsList");
       const itemsContainerEl = document.getElementById("itemsContainer");
+
+      const statusEl = document.getElementById("status");
+      const errorEl = document.getElementById("error");
+      const rawEl = document.getElementById("raw");
 
       async function callMonday(query, variables) {
         const res = await fetch("/api/monday", {
@@ -230,37 +230,38 @@
         try { json = JSON.parse(text); }
         catch { throw new Error("Backend did not return JSON:\n" + text); }
 
+        // Show raw always for debugging
+        rawEl.textContent = JSON.stringify(json, null, 2);
+
         // monday can return 200 with { errors: [...] }
         if (json?.errors?.length) {
           throw new Error(JSON.stringify(json, null, 2));
         }
+        if (!res.ok) {
+          throw new Error(JSON.stringify(json, null, 2));
+        }
 
-        if (!res.ok) throw new Error(JSON.stringify(json, null, 2));
         return json;
       }
 
-      loadBtn.addEventListener("click", async () => {
-        errorEl.textContent = "";
-        statusEl.textContent = "Loading boards...";
-        outEl.textContent = "{}";
+      function setStatus(msg) { statusEl.textContent = msg || ""; }
+      function setError(msg) { errorEl.textContent = msg || ""; }
+
+      loadBoardsBtn.addEventListener("click", async () => {
+        setError("");
+        setStatus("Loading boards...");
         boardsListEl.innerHTML = "";
         itemsContainerEl.textContent = "No items loaded yet.";
         newBoardNameEl.value = "";
 
-        boardsSelectEl.innerHTML = `<option value="">(loading...)</option>`;
         boardsSelectEl.disabled = true;
         loadItemsBtn.disabled = true;
         renameBoardBtn.disabled = true;
+        boardsSelectEl.innerHTML = `<option value="">(loading...)</option>`;
 
         try {
-          const query = `
-            query {
-              boards(limit: 20) { id name }
-            }
-          `;
-
+          const query = `query { boards(limit: 50) { id name } }`;
           const data = await callMonday(query);
-          outEl.textContent = JSON.stringify(data, null, 2);
 
           const boards = data?.data?.boards || [];
 
@@ -276,10 +277,10 @@
           loadItemsBtn.disabled = false;
           renameBoardBtn.disabled = false;
 
-          statusEl.textContent = `Loaded ${boards.length} board(s).`;
+          setStatus(`Loaded ${boards.length} board(s).`);
         } catch (e) {
-          statusEl.textContent = "";
-          errorEl.textContent = e.message;
+          setStatus("");
+          setError(e.message);
           boardsSelectEl.innerHTML = `<option value="">(load boards first)</option>`;
           boardsSelectEl.disabled = true;
           loadItemsBtn.disabled = true;
@@ -288,15 +289,15 @@
       });
 
       loadItemsBtn.addEventListener("click", async () => {
-        errorEl.textContent = "";
+        setError("");
 
         const boardId = boardsSelectEl.value;
         if (!boardId) {
-          errorEl.textContent = "Pick a board first.";
+          setError("Pick a board first.");
           return;
         }
 
-        statusEl.textContent = `Loading items from board ${boardId}...`;
+        setStatus(`Loading items from board ${boardId}...`);
         itemsContainerEl.textContent = "Loading...";
 
         try {
@@ -312,13 +313,12 @@
 
           const variables = { boardId: Number(boardId) };
           const data = await callMonday(query, variables);
-          outEl.textContent = JSON.stringify(data, null, 2);
 
           const items = data?.data?.boards?.[0]?.items_page?.items || [];
 
           if (items.length === 0) {
             itemsContainerEl.textContent = "No items found.";
-            statusEl.textContent = "Done ✅";
+            setStatus("Done ✅");
             return;
           }
 
@@ -341,61 +341,52 @@
             </table>
           `;
 
-          statusEl.textContent = `Loaded ${items.length} item(s). ✅`;
+          setStatus(`Loaded ${items.length} item(s). ✅`);
         } catch (e) {
-          statusEl.textContent = "";
+          setStatus("");
           itemsContainerEl.textContent = "No items loaded yet.";
-          errorEl.textContent = e.message;
+          setError(e.message);
         }
       });
 
       renameBoardBtn.addEventListener("click", async () => {
-        errorEl.textContent = "";
+        setError("");
 
         const boardId = boardsSelectEl.value;
         const newName = (newBoardNameEl.value || "").trim();
 
         if (!boardId) {
-          errorEl.textContent = "Pick a board first.";
+          setError("Pick a board first.");
           return;
         }
         if (!newName) {
-          errorEl.textContent = "Enter a new board name.";
+          setError("Enter a new board name.");
           return;
         }
 
-        statusEl.textContent = `Renaming board ${boardId}...`;
+        setStatus(`Renaming board ${boardId}...`);
 
         try {
+          // IMPORTANT: update_board returns JSON in monday schema -> NO selection set allowed.
           const mutation = `
-  mutation ($boardId: ID!, $name: String!) {
-    update_board(board_id: $boardId, board_attribute: name, new_value: $name)
-  }
-`;
+            mutation ($boardId: ID!, $name: String!) {
+              update_board(board_id: $boardId, board_attribute: name, new_value: $name)
+            }
+          `;
 
           const variables = { boardId: String(boardId), name: newName };
           const data = await callMonday(mutation, variables);
 
-          outEl.textContent = JSON.stringify(data, null, 2);
           if (data?.data?.update_board == null) {
-          throw new Error("Rename failed. (No update_board in response)");
-}
+            throw new Error("Rename failed. (No update_board in response)");
+          }
 
-statusEl.textContent = "Renamed ✅ (refreshing boards...)";
-loadBtn.click();
-          
-          if (data?.data?.update_board == null) {
-  throw new Error("Rename failed. (No update_board in response)");
-}
-
-statusEl.textContent = "Renamed ✅ (refreshing boards...)";
-
-// Refresh boards list + dropdown so the new name appears
-loadBtn.click();
-
+          setStatus("Renamed ✅ (refreshing boards...)");
+          // refresh boards so new name appears in dropdown/list
+          loadBoardsBtn.click();
         } catch (e) {
-          statusEl.textContent = "";
-          errorEl.textContent = e.message;
+          setStatus("");
+          setError(e.message);
         }
       });
 
@@ -410,5 +401,3 @@ loadBtn.click();
     </script>
   </body>
 </html>
-
-
