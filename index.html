@@ -139,18 +139,29 @@
   </head>
 
   <body>
+    <div class="wrap">
     <h1>monday API Viewer</h1>
     <p>This loads your first 20 boards via your backend: <code>/api/monday</code></p>
 
+    <div class="card">
     <button id="load">Load Boards</button>
     <p id="status"></p>
     <p id="error" class="error"></p>
+    </div>
 
+    <div class="card">
+      <h2>Boards</h2>
+      <ul id="boardsList"></ul>
+    </div>  
     <h2>Boards</h2>
     <ul id="boardsList"></ul>
 
+    <div class="card">
     <h2>Boards (raw JSON)</h2>
     <pre id="out">{}</pre>
+    </div>
+  </div>
+</body>
 
     <script>
       const loadBtn = document.getElementById("load");
@@ -211,7 +222,9 @@ statusEl.textContent = "Done ✅";
     .replaceAll("'", "&#039;");
 }
     </script>
+   </div>
   </body>
 </html>
+
 
 
