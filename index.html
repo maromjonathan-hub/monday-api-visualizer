@@ -142,6 +142,7 @@
       const errorEl = document.getElementById("error");
       const outEl = document.getElementById("out");
       const boardsListEl = document.getElementById("boardsList");
+      const boardsSelectEl = document.getElementById("boardsSelect");
 
       async function callMonday(query, variables) {
         const res = await fetch("/api/monday", {
@@ -177,6 +178,12 @@
           outEl.textContent = JSON.stringify(data, null, 2);
 
           const boards = data?.data?.boards || [];
+          boardsSelectEl.innerHTML =
+  `<option value="">(select a board)</option>` +
+  boards.map(b => `<option value="${b.id}">${escapeHtml(b.name)} (${b.id})</option>`).join("");
+
+boardsSelectEl.disabled = false;
+
           boardsListEl.innerHTML = boards
             .map(b =>
               `<li><b>${escapeHtml(b.name)}</b>
@@ -202,4 +209,5 @@
     </script>
   </body>
 </html>
+
 
