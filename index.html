@@ -381,15 +381,15 @@
 
           outEl.textContent = JSON.stringify(data, null, 2);
 
-          const updated = data?.data?.update_board;
-          if (!updated) {
-            throw new Error("Rename failed. (No update_board in response)");
-          }
+          if (data?.data?.update_board == null) {
+  throw new Error("Rename failed. (No update_board in response)");
+}
 
-          statusEl.textContent = `Renamed ✅ → ${updated.name}`;
+statusEl.textContent = "Renamed ✅ (refreshing boards...)";
 
-          // Refresh boards list + dropdown so the new name appears
-          loadBtn.click();
+// Refresh boards list + dropdown so the new name appears
+loadBtn.click();
+
         } catch (e) {
           statusEl.textContent = "";
           errorEl.textContent = e.message;
@@ -407,3 +407,4 @@
     </script>
   </body>
 </html>
+
