@@ -3,77 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>monday.com API Viewer</title>
+    <title>monday API Viewer</title>
     <style>
-      body { font-family: Arial, sans-serif; max-width: 1000px; margin: 24px auto; padding: 0 16px; }
-      .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-      select, button, input { padding: 8px 10px; font-size: 14px; }
-      button { cursor: pointer; }
-      .card { border: 1px solid #ddd; border-radius: 10px; padding: 14px; margin-top: 16px; }
-      .muted { color: #666; font-size: 13px; }
-      table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-      th, td { border-bottom: 1px solid #eee; padding: 10px; text-align: left; vertical-align: top; }
-      th { background: #fafafa; }
-      pre { background: #f6f6f6; padding: 10px; overflow: auto; border-radius: 8px; }
+      body { font-family: Arial, sans-serif; max-width: 900px; margin: 24px auto; padding: 0 16px; }
+      button { padding: 10px 14px; cursor: pointer; }
+      pre { background: #f6f6f6; padding: 12px; border-radius: 8px; overflow: auto; }
       .error { color: #b00020; }
     </style>
   </head>
 
   <body>
-    <h1>monday.com API Viewer</h1>
-    <p class="muted">
-      This site calls your serverless backend at <code>/api/monday</code>, which calls monday.com with your token.
-    </p>
+    <h1>monday API Viewer</h1>
+    <p>This loads your first 20 boards via your backend: <code>/api/monday</code></p>
 
-    <div class="card">
-      <div class="row">
-        <button id="loadBoardsBtn">Load Boards</button>
+    <button id="load">Load Boards</button>
+    <p id="status"></p>
+    <p id="error" class="error"></p>
 
-        <label for="boardsSelect"><b>Board:</b></label>
-        <select id="boardsSelect" disabled>
-          <option value="">(load boards first)</option>
-        </select>
-
-        <button id="loadItemsBtn" disabled>Load Items</button>
-
-        <label for="limitInput"><b>Limit:</b></label>
-        <input id="limitInput" type="number" min="1" max="50" value="10" style="width:80px;" />
-      </div>
-
-      <div id="status" class="muted" style="margin-top:10px;"></div>
-      <div id="error" class="error" style="margin-top:10px;"></div>
-    </div>
-
-    <div class="card">
-      <h2 style="margin-top:0;">Items</h2>
-      <div id="itemsContainer" class="muted">No data yet.</div>
-    </div>
-
-    <div class="card">
-      <h2 style="margin-top:0;">Raw JSON (last response)</h2>
-      <pre id="raw">{}</pre>
-    </div>
+    <h2>Boards (raw JSON)</h2>
+    <pre id="out">{}</pre>
 
     <script>
+      const loadBtn = document.getElementById("load");
       const statusEl = document.getElementById("status");
       const errorEl = document.getElementById("error");
-      const rawEl = document.getElementById("raw");
-      const itemsContainer = document.getElementById("itemsContainer");
-
-      const loadBoardsBtn = document.getElementById("loadBoardsBtn");
-      const loadItemsBtn = document.getElementById("loadItemsBtn");
-      const boardsSelect = document.getElementById("boardsSelect");
-      const limitInput = document.getElementById("limitInput");
-
-      function setStatus(msg) {
-        statusEl.textContent = msg || "";
-      }
-      function setError(msg) {
-        errorEl.textContent = msg || "";
-      }
-      function setRaw(obj) {
-        rawEl.textContent = JSON.stringify(obj, null, 2);
-      }
+      const outEl = document.getElementById("out");
 
       async function callMonday(query, variables) {
         const res = await fetch("/api/monday", {
@@ -85,129 +39,32 @@
         const text = await res.text();
         let json;
         try { json = JSON.parse(text); }
-        catch { throw new Error("Backend did not return JSON:\n" + text); }
+        catch { throw new Error("Not JSON:\n" + text); }
 
-        if (!res.ok) {
-          // monday may still return JSON with errors
-          throw new Error((json && JSON.stringify(json)) || `HTTP ${res.status}`);
-        }
-
+        if (!res.ok) throw new Error(JSON.stringify(json));
         return json;
       }
 
-      function renderItemsTable(items) {
-        if (!items || items.length === 0) {
-          itemsContainer.textContent = "No items found.";
-          return;
-        }
+      loadBtn.addEventListener("click", async () => {
+        errorEl.textContent = "";
+        statusEl.textContent = "Loading boards...";
+        outEl.textContent = "{}";
 
-        const rows = items.map(item => {
-          // show a few fields; you can expand later
-          const id = item.id ?? "";
-          const name = item.name ?? "";
-          const group = item.group?.title ?? "";
-          return `<tr><td>${id}</td><td>${escapeHtml(name)}</td><td>${escapeHtml(group)}</td></tr>`;
-        }).join("");
-
-        itemsContainer.innerHTML = `
-          <table>
-            <thead>
-              <tr>
-                <th style="width:140px;">Item ID</th>
-                <th>Name</th>
-                <th style="width:220px;">Group</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-        `;
-      }
-
-      // Basic escaping so item names can't break the HTML
-      function escapeHtml(str) {
-        return String(str)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#039;");
-      }
-
-      async function loadBoards() {
-        setError("");
-        setStatus("Loading boards...");
-        itemsContainer.textContent = "No data yet.";
-
-        const query = `
-          query {
-            boards(limit: 50) { id name }
-          }
-        `;
-
-        const data = await callMonday(query);
-        setRaw(data);
-
-        const boards = data?.data?.boards || [];
-        boardsSelect.innerHTML = `<option value="">(select a board)</option>` +
-          boards.map(b => `<option value="${b.id}">${escapeHtml(b.name)} (${b.id})</option>`).join("");
-
-        boardsSelect.disabled = false;
-        loadItemsBtn.disabled = false;
-
-        setStatus(`Loaded ${boards.length} board(s).`);
-      }
-
-      async function loadItems() {
-        setError("");
-
-        const boardId = boardsSelect.value;
-        const limit = Math.max(1, Math.min(50, Number(limitInput.value || 10)));
-
-        if (!boardId) {
-          setError("Pick a board first.");
-          return;
-        }
-
-        setStatus(`Loading ${limit} items from board ${boardId}...`);
-        itemsContainer.textContent = "Loading...";
-
-        const query = `
-          query ($boardId: [ID!], $limit: Int!) {
-            boards(ids: $boardId) {
-              id
-              name
-              items_page(limit: $limit) {
-                items {
-                  id
-                  name
-                  group { id title }
-                }
-              }
+        try {
+          const query = `
+            query {
+              boards(limit: 20) { id name }
             }
-          }
-        `;
+          `;
 
-        const variables = { boardId: Number(boardId), limit };
-
-        const data = await callMonday(query, variables);
-        setRaw(data);
-
-        const items = data?.data?.boards?.[0]?.items_page?.items || [];
-        renderItemsTable(items);
-
-        setStatus(`Loaded ${items.length} item(s).`);
-      }
-
-      loadBoardsBtn.addEventListener("click", async () => {
-        try { await loadBoards(); }
-        catch (e) { setError(e.message); setStatus(""); }
-      });
-
-      loadItemsBtn.addEventListener("click", async () => {
-        try { await loadItems(); }
-        catch (e) { setError(e.message); setStatus(""); }
+          const data = await callMonday(query);
+          outEl.textContent = JSON.stringify(data, null, 2);
+          statusEl.textContent = "Done ✅";
+        } catch (e) {
+          statusEl.textContent = "";
+          errorEl.textContent = e.message;
+        }
       });
     </script>
   </body>
 </html>
-
