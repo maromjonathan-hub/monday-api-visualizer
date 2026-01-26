@@ -20,6 +20,9 @@
     <p id="status"></p>
     <p id="error" class="error"></p>
 
+    <h2>Boards</h2>
+    <ul id="boardsList"></ul>
+
     <h2>Boards (raw JSON)</h2>
     <pre id="out">{}</pre>
 
@@ -28,6 +31,7 @@
       const statusEl = document.getElementById("status");
       const errorEl = document.getElementById("error");
       const outEl = document.getElementById("out");
+      const boardsListEl = document.getElementById("boardsList");
 
       async function callMonday(query, variables) {
         const res = await fetch("/api/monday", {
@@ -49,6 +53,7 @@
         errorEl.textContent = "";
         statusEl.textContent = "Loading boards...";
         outEl.textContent = "{}";
+        boardsListEl.innerHTML = "";
 
         try {
           const query = `
@@ -57,14 +62,29 @@
             }
           `;
 
-          const data = await callMonday(query);
-          outEl.textContent = JSON.stringify(data, null, 2);
-          statusEl.textContent = "Done ✅";
+         const data = await callMonday(query);
+outEl.textContent = JSON.stringify(data, null, 2);
+
+const boards = data?.data?.boards || [];
+boardsListEl.innerHTML = boards
+  .map(b => `<li><b>${escapeHtml(b.name)}</b> <span style="color:#666;">(id: ${b.id})</span></li>`)
+  .join("");
+
+statusEl.textContent = "Done ✅";
         } catch (e) {
           statusEl.textContent = "";
           errorEl.textContent = e.message;
         }
       });
+    function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
     </script>
   </body>
 </html>
+
